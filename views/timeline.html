@@ -1,0 +1,184 @@
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Timeline</title>
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="timeline.css">
+    <link rel="stylesheet" href="css/emojionearea.min.css">
+
+    <link rel="stylesheet" href="css/jquery.countdown.css">
+
+    <style>
+    
+    .timeline-label-year {
+        text-align: center;
+    }
+
+    .timeline-label-year > span {
+        /* Center */
+        font-weight: 600;
+        padding: 5px;
+        display: inline-block;
+        border-radius: 4px;
+        background-color: #5cb85c;
+    }
+
+    .timeline-label-month {
+        text-align: center;
+    }
+
+    .timeline-label-month > span {
+        /* Center */
+        font-weight: 600;
+        padding: 5px;
+        display: inline-block;
+        border-radius: 4px;
+        background-color: #5bc0de;
+    }
+
+    .btn-zone {
+        margin: 10px 0px;
+        padding: 0px !important;
+    }
+    
+    .carousel-inner {
+        height: 400px;
+        width: 100%;
+    }
+    
+    .carousel-caption {
+        top: 320px;
+    }
+    
+    .carousel-caption > h3 {
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        top: 20px;
+    }
+    
+    .carousel-caption > p {
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        top: 3px;
+    }
+
+    .my-timer{
+        height: 50px;
+        margin: 10px 0px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner">
+            <div class="item active">
+                <img src="img/night_long.jpg" alt="Los Angeles">
+                <div class="carousel-caption">
+                    <h3>Said no more counting dollars We'll be counting stars</h3>
+                    <p>Mar 16, 2017</p>
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/bioshock5.png" alt="Chicago">
+                <div class="carousel-caption">
+                    <h3>"I won't abandon you." "You wouldn't, would you?"</h3>
+                    <p>Dec 29, 2016</p>
+                </div>
+            </div>
+            <div class="item">
+                <img src="img/grand_canyon.jpg" alt="New York">
+                <div class="carousel-caption">
+                    <h3>I tried to picture me without you but I can't</h3>
+                    <p>Dec 22, 2016</p>
+                </div>
+            </div>
+        </div>
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+    <div class="container">
+        <div class="page-header">
+            <h1 id="timeline">Timeline</h1>
+        </div>
+
+        <!-- Message box -->
+        <div class="panel panel-info" id="message-box">
+            <div class="panel-heading">Don't ya dare forget me</div>
+        </div>
+
+        <div>
+            <button class="btn btn-info" onclick="load_diaries()">Reload contents</button>
+            <button class="btn btn-info" id="add_diary_right"> New diary to the right</button>
+            <button class="btn btn-info" id="add_diary_left"> New diary to the left</button>
+        </div>
+        <div class="col-lg-12">
+            <div id="diary_panel">
+                <ul class="timeline" id="diary_zone">
+                </ul>
+            </div>
+            <!-- End of diary panel -->
+        </div>
+        <!-- End of col-lg-12 -->
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+    <script src="bootstrap/js/bootstrap.js"></script>
+    <script src="scripts/bootstrap-datetimepicker.js"></script>
+    <script type="text/javascript" src="scripts/emojionearea.min.js"></script>
+    <script src="scripts/diary.js"></script>
+    <script>
+        $(document).ready(function(){
+            console.log('Loading diaries');
+            load_diaries();
+            console.log('Loaded.');
+        });
+    </script>
+    <script type="text/javascript">
+        $(function() {
+            $("[id^='datetimepicker']").datetimepicker({
+                format: 'MMM D, YYYY'
+            });
+        });
+    </script>
+    <script>
+        var NAMES={
+            left: "ljc",
+            right: "zjy"
+        };
+        $("#add_diary_left").text("Add a diary as "+NAMES["left"]);
+        $("#add_diary_left").click(function(){
+            add_diary(NAMES["left"]);
+        });
+        $("#add_diary_right").text("Add a diary as "+NAMES["right"]);
+        $("#add_diary_right").click(function(){
+            add_diary(NAMES["right"]);
+        });
+    </script>
+
+    <script type="text/javascript" src="scripts/jquery.plugin.js"></script> 
+    <script src="scripts/jquery.countdown.js"></script>
+</body>
