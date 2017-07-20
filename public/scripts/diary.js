@@ -328,14 +328,27 @@ function delete_diary(zone) {
     var li = $(panel).closest('li');
 
     // requried fields
-    var uname = li.attr('uname');
-    var id = li.attr('mongo_id');
+    var uname = panel.attr('username');
+    var id = panel.attr('mongo_id');
     console.log('Target id is ' + id);
 
     var wrapped = {
         id: id,
         uname: uname
     };
+    console.log("Wrapped: ");
+    console.log(wrapped);
+
+    if(!id){
+        console.log('Found no mongo_id for this diary. Cannot delete.');
+        display_message({success: false, message: "Failed to locate id for this diary."});
+        return;
+    }
+    if(!uname){
+        console.log('Found no username for this diary. Cannot delete.');
+        display_message({success: false, message: "Failed to locate username for this diary."});
+        return;
+    }
 
     // ajax call
     $.ajax({
@@ -542,16 +555,34 @@ function new_year_label(date) {
     var year = date.year();
 
     var div = $('<div class="timeline-label-year">').append($('<span>').text(year));
+    div.append($('<a name="'+year+'"></a>'));
     var label = $('<li>').append(div);
     return label;
 }
 
+function new_year_anchor(date){
+    var year = date.year();  
+    var anchor=$('<li role="presentation">').append($('<a href="#'+year+'">'+year+'</a>'));
+    return anchor;
+}
+
+var MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function new_month_label(date) {
-    var month = date.month();
+    var year = date.year();    
+    var month = MONTH_NAMES[date.month()];
 
     var div = $('<div class="timeline-label-month">').append($('<span>').text(month));
+    div.append($('<a name="'+year+'_'+month+'"></a>'));
     var label = $('<li>').append(div);
     return label;
+}
+
+function new_month_anchor(date){
+    var year = date.year();  
+    var month = MONTH_NAMES[date.month()];
+    var anchor=$('<li role="presentation">').append($('<a href="#'+year+'_'+month+'">'+month+'</a>'));
+    return anchor;
 }
 
 function text_change(zone) {
@@ -609,6 +640,14 @@ function load_diaries() {
                         continue;
                     }
 
+                    // if marked as deleted, ignore
+                    var deleted=piece.deleted;
+                    console.log("Is the diary deleted: "+deleted);
+                    if(deleted){
+                        console.log("The diary is deleted. Ignore.");
+                        continue;
+                    }
+
                     // check if the username is expected
                     var name_known = $.inArray(uname, magic_names);
                     if (name_known == -1) {
@@ -630,9 +669,9 @@ function load_diaries() {
                     // date conversion
                     var date_raw = piece.date;
                     console.log('Date: ' + date_raw);
-                    var date = moment(date_raw);
+                    var the_date = moment(date_raw);
                     // format MMM, D, YYYY
-                    var date_str = date.format('MMM D, YYYY');
+                    var date_str = the_date.format('MMM D, YYYY');
 
                     // content conversion
                     var page = piece.content;
@@ -651,6 +690,7 @@ function load_diaries() {
                     diary_list.push({
                         mongo_id: id,
                         uname: uname,
+                        the_date: the_date,
                         date_str: date_str,
                         content: content,
                         last_modified: last_modified,
@@ -663,12 +703,15 @@ function load_diaries() {
                 console.log('Before sorting the diaries.');
                 console.log(diary_list);
                 diary_list.sort(function(a, b) {
-                    var res = moment(b).isBefore(a) ? -1 : 1;
+                    var res = moment(b.date_str, 'MMM D, YYYY').isBefore(moment(a.date_str, 'MMM D, YYYY')) ? 1 : -1;
                     console.log("Comparison result: " + res);
                     return res;
                 });
                 console.log('After sorting.');
                 console.log(diary_list);
+
+                // a list of anchors to add
+                var anchors=[];
 
                 // generate diaries
                 var last_date = moment('Jan 1, 2009', 'MMM DD, YYYY');
@@ -676,20 +719,33 @@ function load_diaries() {
                     var d = diary_list[j];
 
                     // diff from the last date
-                    var the_date = moment(d.date);
+                    var the_date = d.the_date;
                     var year_diff = the_date.diff(last_date, 'years', true);
                     console.log('Year diff by ' + year_diff);
                     var month_diff = the_date.diff(last_date, 'months', true);
                     console.log('Month diff by ' + month_diff);
 
                     if (year_diff >= 1) {
-                        console.log('Date is');
-                        console.log(d);
+                        console.log('Diff by >1 year date is '+d.date_str);
                         var year_label = new_year_label(the_date);
+                        console.log("Created new year label: ");
+                        console.log(year_label);
                         $("#diary_zone").append(year_label);
+
+                        // add year anchor
+                        var year_anchor= new_year_anchor(the_date);
+                        anchors.push({type: "year", anchor: year_anchor});
                     }
                     if (month_diff >= 1) {
+                        console.log("Diff by >1 month date is "+d.date_str);
                         var month_label = new_month_label(the_date);
+                        console.log("Created month label ");
+                        console.log(month_label);
+                        $("#diary_zone").append(month_label);
+
+                        // add month anchor
+                        var month_anchor= new_month_anchor(the_date);
+                        anchors.push({type: "month", anchor: month_anchor});
                     }
                     last_date = the_date;
 
@@ -718,6 +774,9 @@ function load_diaries() {
                     }                    
                 }
 
+                // finished all diaries, now generate anchors
+                generate_anchors(anchors);
+
             } else {
                 console.log("Failed to load data. Stop.");
                 return;
@@ -729,6 +788,22 @@ function load_diaries() {
             });
 
         });
+}
+
+function generate_anchors(anchors){
+    console.log("Anchors: ");
+    console.log(anchors);
+
+    // nav field
+    var nav=$("#nav");
+
+    for(var i=0; i<anchors.length; i++){
+        var a=anchors[i];
+
+        nav.append(a.anchor);
+    }
+
+    console.log("Appended "+anchors.length+" anchors");
 }
 
 // global vars

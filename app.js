@@ -62,7 +62,8 @@ var diarySchema = mongoose.Schema({
     last_modified: {
         type: Date
     },
-    timer_format: String
+    timer_format: String,
+    deleted: Boolean // whether the diary is deleted
 });
 
 var Diary = mongoose.model('Diary', diarySchema);
@@ -79,14 +80,14 @@ var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: '',
+    user: 'autiewashestherailway@gmail.com',
     pass: ''
   }
 });
 
 var start_app = {
-  from: '',
-  to: '',
+  from: 'autiewashestherailway@gmail.com',
+  to: 'jiacheliu3@gmail.com',
   subject: 'My diary started',
   text: 'That was easy!'
 };
@@ -98,7 +99,7 @@ app.get('/timeline', function(req, res, next) {
 app.get('/diary', function(req, res, next) {
     console.log('Retrieving to DB');
     var d;
-    Diary.find({}, function(err, diaries) {
+    Diary.find({deleted: {'$ne':true }}, function(err, diaries) {
         if (err) {
             console.log('Error loading all from db.');
             console.log(err);
@@ -126,7 +127,8 @@ app.get('/diary', function(req, res, next) {
                             date: piece.date,
                             content: piece.content,
                             last_modified: piece.last_modified,
-                            timer_format: piece.timer_format
+                            timer_format: piece.timer_format,
+                            deleted: piece.deleted
                         };
                         repo.push(converted);
                     }
@@ -202,7 +204,22 @@ app.post('/delete_diary', function(req, res, next) {
     var data = req.body;
     var id = data.id;
     var uname = data.uname;
+    console.log('About to delete: '+id);
 
+    if(!id){
+        console.log("No ID found for the request. Abort.");
+        return res.json({
+            success: false,
+            message: 'No ID for the diary to delete.'
+        })
+    }
+    if(!uname){
+        console.log("No username found for the request. Abort.");
+        return res.json({
+            success: false,
+            message: 'No username for the diary to delete.'
+        })
+    }
 
     Diary.findById(id, function(err, result) {
         if (err) {
@@ -213,32 +230,51 @@ app.post('/delete_diary', function(req, res, next) {
                 message: 'Error finding diary with id ' + id
             });
         } else {
-            console.log('Diary to be deleted:');
+            console.log('Diary to mark deleted:');
             console.log(result);
 
             // verify if the user is correct
 
+            // Diary.deleteOne({ id: id }, function(err, ret) {
+            //     if (err) {
+            //         console.log('Error deleting diary.');
+            //         console.log(err);
+            //         return res.json({
+            //             success: false,
+            //             message: 'Error finding diary with id ' + id
+            //         });
+            //     } else {
+            //         console.log('Deleted diary');
+            //         console.log(ret);
 
+            //         return res.json({
+            //             success: true,
+            //             message: 'Diary deleted'
+            //         });
+            //     }
 
-            Diary.deleteOne({ id: id }, function(err, ret) {
+            // });
+
+            
+            // update the result
+            result.deleted=true;
+            result.save(function(err, updated_diary) {
                 if (err) {
-                    console.log('Error deleting diary.');
+                    console.log('Error saving updated diary.');
                     console.log(err);
                     return res.json({
                         success: false,
-                        message: 'Error finding diary with id ' + id
+                        message: 'Cannot mark diary as deleted. '
                     });
                 } else {
-                    console.log('Deleted diary');
-                    console.log(ret);
-
+                    console.log('Diary content updated to ' + updated_diary.content);
                     return res.json({
                         success: true,
-                        message: 'Diary deleted'
+                        message: 'Marked diary as deleted. '
                     });
                 }
-
             });
+
         }
     });
 
@@ -363,7 +399,7 @@ app.post('/diary', function(req, res, next) {
                         type: 'text',
                         content: contents
                     };
-                    result.timer_format = timer_format
+                    result.timer_format = timer_format;
 
                     result.save(function(err, updated_diary) {
                         if (err) {
