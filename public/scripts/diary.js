@@ -295,7 +295,7 @@ function add_diary(uname) {
     var new_diary = create_diary_dom(index, diary_obj);
 
     // append the diary and activate
-    $("#diary_zone").append(new_diary);
+    $("#diary_zone").prepend(new_diary);
     $(new_diary).find('textarea').emojioneArea();
 
     // activate all datetime pickers
