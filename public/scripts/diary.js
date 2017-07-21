@@ -361,13 +361,13 @@ function delete_diary(zone) {
             console.log('Response from server');
             console.log(result);
 
-            console.log("Remove li from screen");
-            console.log(zone);
+            // console.log("Remove li from screen");
+            // console.log(zone);
             var root = $(zone).closest('ul').closest('li');
-            console.log(root);
+            // console.log(root);
             root.hide();
-            console.log("Should be removed.");
-            console.log(root);
+            // console.log("Should be removed.");
+            // console.log(root);
 
             display_message(result);
         })
@@ -410,7 +410,7 @@ function create_diary_dom(index, diary_obj) {
     var timer_format = diary_obj.timer_format;
     var inverted = diary_obj.inverted;
 
-    console.log('The diary is inverted: ' + inverted);
+    // console.log('The diary is inverted: ' + inverted);
 
     if (inverted) {
         var diary_class = "timeline-inverted";
@@ -489,7 +489,7 @@ function create_diary_dom(index, diary_obj) {
         format: timer_format});
 
     console.log('Generated new diary');
-    console.log(diary);
+    // console.log(diary);
 
     return diary;
 }
@@ -521,11 +521,11 @@ function add_timer(zone){
         return;
     }
     var date = date_zone[0].innerText;
-    console.log('Date is ' + date);
+    // console.log('Date is ' + date);
 
     // convert into milliseconds
     var ms = moment(date, 'MMM DD, YYYY');
-    console.log('Parsed date: ' + ms);
+    // console.log('Parsed date: ' + ms);
 
     // create a timer
     var timer = $('<div class="my-timer" id="timer_'+id+'">');
@@ -534,8 +534,8 @@ function add_timer(zone){
     var timer_format = 'YODHMS';
 
     var the_date = new Date(ms);
-    console.log("Timer counts from ");
-    console.log(the_date);
+    // console.log("Timer counts from ");
+    // console.log(the_date);
     console.log("Timer object prepended.");
     $(timer).countdown({since: the_date, 
         format: timer_format});
@@ -597,7 +597,7 @@ function load_diaries() {
             method: "GET"
         })
         .done(function(result) {
-            console.log(result);
+            // console.log(result);
 
             // display the status
             display_message(result);
@@ -668,7 +668,7 @@ function load_diaries() {
 
                     // date conversion
                     var date_raw = piece.date;
-                    console.log('Date: ' + date_raw);
+                    // console.log('Date: ' + date_raw);
                     var the_date = moment(date_raw);
                     // format MMM, D, YYYY
                     var date_str = the_date.format('MMM D, YYYY');
@@ -676,8 +676,8 @@ function load_diaries() {
                     // content conversion
                     var page = piece.content;
                     var content = page.content;
-                    console.log('Full text: ');
-                    console.log(content);
+                    // console.log('Full text: ');
+                    // console.log(content);
 
                     // last modified date
                     var last_modified = piece.last_modified;
@@ -720,12 +720,19 @@ function load_diaries() {
 
                     // diff from the last date
                     var the_date = d.the_date;
-                    var year_diff = the_date.diff(last_date, 'years', true);
-                    console.log('Year diff by ' + year_diff);
-                    var month_diff = the_date.diff(last_date, 'months', true);
-                    console.log('Month diff by ' + month_diff);
+                    // var year_diff = the_date.diff(last_date, 'years', true);
+                    // // console.log('Year diff by ' + year_diff);
+                    // var month_diff = the_date.diff(last_date, 'months', true);
+                    // // console.log('Month diff by ' + month_diff);
 
-                    if (year_diff >= 1) {
+                    function diff_month(ld, td){
+                        return td.month()>ld.month();
+                    }
+                    function diff_year(ld, td){
+                        return td.year()>ld.year();
+                    }
+
+                    if(diff_year(last_date, the_date)){
                         console.log('Diff by >1 year date is '+d.date_str);
                         var year_label = new_year_label(the_date);
                         console.log("Created new year label: ");
@@ -735,8 +742,8 @@ function load_diaries() {
                         // add year anchor
                         var year_anchor= new_year_anchor(the_date);
                         anchors.push({type: "year", anchor: year_anchor});
-                    }
-                    if (month_diff >= 1) {
+
+                        // add month anchor
                         console.log("Diff by >1 month date is "+d.date_str);
                         var month_label = new_month_label(the_date);
                         console.log("Created month label ");
@@ -746,6 +753,18 @@ function load_diaries() {
                         // add month anchor
                         var month_anchor= new_month_anchor(the_date);
                         anchors.push({type: "month", anchor: month_anchor});
+                    }
+                    else if(diff_month(last_date, the_date)){
+                        console.log("Diff by >1 month date is "+d.date_str);
+                        var month_label = new_month_label(the_date);
+                        console.log("Created month label ");
+                        console.log(month_label);
+                        $("#diary_zone").append(month_label);
+
+                        // add month anchor
+                        var month_anchor= new_month_anchor(the_date);
+                        anchors.push({type: "month", anchor: month_anchor});
+
                     }
                     last_date = the_date;
 
@@ -763,8 +782,8 @@ function load_diaries() {
                             },
                         }
                     });
-                    console.log("Emo area: ");
-                    console.log(emo[0]);
+                    // console.log("Emo area: ");
+                    // console.log(emo[0]);
                     if (emo[0]) {
                         var handle = emo.data('emojioneArea');
                         
